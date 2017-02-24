@@ -262,12 +262,12 @@
         <permission android:name="com.android.gallery3d.filtershow.permission.WRITE"
                     android:protectionLevel="signature" />
 
-        <provider
+<!--        <provider
             android:name="com.android.gallery3d.filtershow.provider.SharedImageProvider"
             android:authorities="com.android.gallery3d.filtershow.provider.SharedImageProvider"
             android:grantUriPermissions="true"
             android:readPermission="com.android.gallery3d.filtershow.permission.READ"
-            android:writePermission="com.android.gallery3d.filtershow.permission.WRITE" />
+            android:writePermission="com.android.gallery3d.filtershow.permission.WRITE" />-->
 
         <service
             android:name="com.android.gallery3d.filtershow.pipeline.ProcessingService"
@@ -323,7 +323,7 @@
             </intent-filter>
         </activity>
 
-        <provider android:name="com.android.gallery3d.provider.GalleryProvider"
+<!--        <provider android:name="com.android.gallery3d.provider.GalleryProvider"
                   android:syncable="false"
                   android:grantUriPermissions="true"
                   android:exported="true"
@@ -333,7 +333,7 @@
             android:name="com.android.photos.data.PhotoProvider"
             android:authorities="com.android.gallery3d.photoprovider"
             android:syncable="false"
-            android:exported="false"/>
+            android:exported="false"/>-->
         <activity android:name="com.android.gallery3d.gadget.WidgetClickHandler" />
         <activity android:name="com.android.gallery3d.app.DialogPicker"
                   android:configChanges="keyboardHidden|orientation|screenSize"
@@ -419,7 +419,7 @@
                   android:label="@string/movie_view_label"
                   android:configChanges="orientation|keyboardHidden|screenSize|mnc|mcc">
         </activity>
-        <provider
+<!--        <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="com.android.gallery3d.fileprovider"
             android:exported="false"
@@ -427,7 +427,7 @@
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
-        </provider>
+        </provider>-->
     </application>
 
 </manifest>

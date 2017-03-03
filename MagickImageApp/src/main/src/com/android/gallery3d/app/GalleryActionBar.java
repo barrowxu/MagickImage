@@ -57,7 +57,9 @@ public class GalleryActionBar implements OnNavigationListener, RadioGroup.OnChec
     private LayoutInflater mInflater;
     private AbstractGalleryActivity mActivity;
     private ActionBar mActionBar;
+    private RadioGroup mToolBar;
     private int mCurrentIndex;
+    private int mCurrentClusterType;
     private ClusterAdapter mAdapter = new ClusterAdapter();
 
     private AlbumModeAdapter mAlbumModeAdapter;
@@ -206,13 +208,16 @@ public class GalleryActionBar implements OnNavigationListener, RadioGroup.OnChec
                     mActivity.getGLRoot().lockRenderThread();
                     try {
                         mClusterRunner.doCluster(msg.arg1);
+                        mCurrentClusterType = msg.arg1;
                     } finally {
                         mActivity.getGLRoot().unlockRenderThread();
                     }
                 }
             }
         };
-        ((RadioGroup)mActivity.findViewById(R.id.main_toolbar)).setOnCheckedChangeListener(this);
+
+        mToolBar = (RadioGroup)mActivity.findViewById(R.id.main_toolbar);
+        mToolBar.setOnCheckedChangeListener(this);
     }
 
     private void createDialogData() {
@@ -255,11 +260,9 @@ public class GalleryActionBar implements OnNavigationListener, RadioGroup.OnChec
     }
 
     public void enableClusterMenu(int action, ClusterRunner runner) {
-        if (mActionBar != null) {
+        if (mToolBar != null) {
             // Don't set cluster runner until action bar is ready.
             mClusterRunner = null;
-            mActionBar.setListNavigationCallbacks(mAdapter, this);
-            mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
             setSelectedAction(action);
             mClusterRunner = runner;
         }
@@ -380,17 +383,13 @@ public class GalleryActionBar implements OnNavigationListener, RadioGroup.OnChec
     }
 
     public boolean setSelectedAction(int type) {
-        if (mActionBar == null) return false;
+        if (mToolBar == null) return false;
 
-        for (int i = 0, n = sClusterItems.length; i < n; i++) {
-            ActionItem item = sClusterItems[i];
-            if (item.action == type) {
-                mActionBar.setSelectedNavigationItem(i);
-                mCurrentIndex = i;
-                return true;
-            }
-        }
-        return false;
+        int clustViewId = getClusterIdByType(type);
+        if(clustViewId == -1)
+            return false;
+        mToolBar.check(clustViewId);
+        return true;
     }
 
     @Override
@@ -476,5 +475,17 @@ public class GalleryActionBar implements OnNavigationListener, RadioGroup.OnChec
                 navHandler.obtainMessage(0, FilterUtils.CLUSTER_BY_ALBUM, 0).sendToTarget();
                 break;
         }
+    }
+
+    private int getClusterIdByType( int clusterType) {
+        switch (clusterType) {
+            case FilterUtils.CLUSTER_BY_ALBUM:
+                return R.id.albums;
+            case FilterUtils.CLUSTER_BY_LOCATION:
+                return R.id.location;
+            case FilterUtils.CLUSTER_BY_TIME:
+                return R.id.time;
+        }
+        return -1;
     }
 }

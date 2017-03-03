@@ -26,12 +26,16 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.RadioGroup;
 import android.widget.ShareActionProvider;
 import android.widget.TextView;
 import android.widget.TwoLineListItem;
@@ -41,7 +45,7 @@ import com.android.gallery3d.common.ApiHelper;
 
 import java.util.ArrayList;
 
-public class GalleryActionBar implements OnNavigationListener {
+public class GalleryActionBar implements OnNavigationListener, RadioGroup.OnCheckedChangeListener {
     @SuppressWarnings("unused")
     private static final String TAG = "GalleryActionBar";
 
@@ -193,6 +197,22 @@ public class GalleryActionBar implements OnNavigationListener {
         mActivity = activity;
         mInflater = ((Activity) mActivity).getLayoutInflater();
         mCurrentIndex = 0;
+
+        navHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                if(mClusterRunner != null){
+                    mActivity.getGLRoot().lockRenderThread();
+                    try {
+                        mClusterRunner.doCluster(msg.arg1);
+                    } finally {
+                        mActivity.getGLRoot().unlockRenderThread();
+                    }
+                }
+            }
+        };
+        ((RadioGroup)mActivity.findViewById(R.id.main_toolbar)).setOnCheckedChangeListener(this);
     }
 
     private void createDialogData() {
@@ -437,6 +457,24 @@ public class GalleryActionBar implements OnNavigationListener {
             mShareActionProvider.setShareIntent(shareIntent);
             mShareActionProvider.setOnShareTargetSelectedListener(
                 onShareListener);
+        }
+    }
+
+    private Handler navHandler = null;
+    @Override
+    public void onCheckedChanged(RadioGroup radioGroup, int i) {
+        if(mClusterRunner == null)
+            return ;
+        switch(i) {
+            case R.id.time:
+                navHandler.obtainMessage(0, FilterUtils.CLUSTER_BY_TIME, 0).sendToTarget();
+                break;
+            case R.id.location:
+                navHandler.obtainMessage(0, FilterUtils.CLUSTER_BY_LOCATION, 0).sendToTarget();
+                break;
+            case R.id.albums:
+                navHandler.obtainMessage(0, FilterUtils.CLUSTER_BY_ALBUM, 0).sendToTarget();
+                break;
         }
     }
 }

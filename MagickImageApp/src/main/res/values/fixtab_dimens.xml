@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="fixtab_text_height">48dp</dimen>
+    <dimen name="fixtab_padding">12dp</dimen>
+    <dimen name="fixtab_font_size" >14sp</dimen>
+</resources>

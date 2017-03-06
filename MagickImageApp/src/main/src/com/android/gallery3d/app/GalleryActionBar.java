@@ -26,16 +26,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.RadioGroup;
 import android.widget.ShareActionProvider;
 import android.widget.TextView;
 import android.widget.TwoLineListItem;
@@ -45,7 +41,7 @@ import com.android.gallery3d.common.ApiHelper;
 
 import java.util.ArrayList;
 
-public class GalleryActionBar implements OnNavigationListener, RadioGroup.OnCheckedChangeListener {
+public class GalleryActionBar implements OnNavigationListener {
     @SuppressWarnings("unused")
     private static final String TAG = "GalleryActionBar";
 
@@ -57,9 +53,7 @@ public class GalleryActionBar implements OnNavigationListener, RadioGroup.OnChec
     private LayoutInflater mInflater;
     private AbstractGalleryActivity mActivity;
     private ActionBar mActionBar;
-    private RadioGroup mToolBar;
     private int mCurrentIndex;
-    private int mCurrentClusterType;
     private ClusterAdapter mAdapter = new ClusterAdapter();
 
     private AlbumModeAdapter mAlbumModeAdapter;
@@ -199,25 +193,6 @@ public class GalleryActionBar implements OnNavigationListener, RadioGroup.OnChec
         mActivity = activity;
         mInflater = ((Activity) mActivity).getLayoutInflater();
         mCurrentIndex = 0;
-
-        navHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                if(mClusterRunner != null){
-                    mActivity.getGLRoot().lockRenderThread();
-                    try {
-                        mClusterRunner.doCluster(msg.arg1);
-                        mCurrentClusterType = msg.arg1;
-                    } finally {
-                        mActivity.getGLRoot().unlockRenderThread();
-                    }
-                }
-            }
-        };
-
-        mToolBar = (RadioGroup)mActivity.findViewById(R.id.main_toolbar);
-        mToolBar.setOnCheckedChangeListener(this);
     }
 
     private void createDialogData() {
@@ -260,9 +235,11 @@ public class GalleryActionBar implements OnNavigationListener, RadioGroup.OnChec
     }
 
     public void enableClusterMenu(int action, ClusterRunner runner) {
-        if (mToolBar != null) {
+        if (mActionBar != null) {
             // Don't set cluster runner until action bar is ready.
             mClusterRunner = null;
+            mActionBar.setListNavigationCallbacks(mAdapter, this);
+            mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
             setSelectedAction(action);
             mClusterRunner = runner;
         }
@@ -383,13 +360,17 @@ public class GalleryActionBar implements OnNavigationListener, RadioGroup.OnChec
     }
 
     public boolean setSelectedAction(int type) {
-        if (mToolBar == null) return false;
+        if (mActionBar == null) return false;
 
-        int clustViewId = getClusterIdByType(type);
-        if(clustViewId == -1)
-            return false;
-        mToolBar.check(clustViewId);
-        return true;
+        for (int i = 0, n = sClusterItems.length; i < n; i++) {
+            ActionItem item = sClusterItems[i];
+            if (item.action == type) {
+                mActionBar.setSelectedNavigationItem(i);
+                mCurrentIndex = i;
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -457,35 +438,5 @@ public class GalleryActionBar implements OnNavigationListener, RadioGroup.OnChec
             mShareActionProvider.setOnShareTargetSelectedListener(
                 onShareListener);
         }
-    }
-
-    private Handler navHandler = null;
-    @Override
-    public void onCheckedChanged(RadioGroup radioGroup, int i) {
-        if(mClusterRunner == null)
-            return ;
-        switch(i) {
-            case R.id.time:
-                navHandler.obtainMessage(0, FilterUtils.CLUSTER_BY_TIME, 0).sendToTarget();
-                break;
-            case R.id.location:
-                navHandler.obtainMessage(0, FilterUtils.CLUSTER_BY_LOCATION, 0).sendToTarget();
-                break;
-            case R.id.albums:
-                navHandler.obtainMessage(0, FilterUtils.CLUSTER_BY_ALBUM, 0).sendToTarget();
-                break;
-        }
-    }
-
-    private int getClusterIdByType( int clusterType) {
-        switch (clusterType) {
-            case FilterUtils.CLUSTER_BY_ALBUM:
-                return R.id.albums;
-            case FilterUtils.CLUSTER_BY_LOCATION:
-                return R.id.location;
-            case FilterUtils.CLUSTER_BY_TIME:
-                return R.id.time;
-        }
-        return -1;
     }
 }
